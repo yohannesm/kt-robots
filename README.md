@@ -248,6 +248,9 @@ For the boss level, your opponent is every other team! Submit your Robot ARN to 
 
 ## Programming Reference
 
+<details>
+<summary>Reference Details</summary>
+
 ### Pre-Build Lambda-Robots
 
 The `lambda-robots/src/main/kotlin/io.onema.ktrobots.lambda/functions/` folder contains additional robots that are deployed, these have different behaviors.
@@ -409,3 +412,4 @@ The default configuration for each is shown in bold font and an asterisk (*).
 | Cannon          | 500 meters   | 100 m/s  | 6                | 4              | 2             | 3 sec    | 3      |
 | BFG             | 350 meters   | 75 m/s   | 12               | 8              | 4             | 5 sec    | 4      |
 
+</details>
