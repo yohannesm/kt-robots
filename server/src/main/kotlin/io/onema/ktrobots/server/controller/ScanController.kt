@@ -14,7 +14,7 @@ package io.onema.ktrobots.server.controller
 import io.onema.ktrobots.commons.domain.ScanEnemiesRequest
 import io.onema.ktrobots.commons.domain.ScanEnemiesResponse
 import io.onema.ktrobots.commons.utils.angleToXY
-import io.onema.ktrobots.commons.utils.distance
+import io.onema.ktrobots.commons.utils.distanceToXY
 import io.onema.ktrobots.server.data.GameTableRepository
 import io.onema.ktrobots.server.domain.GameRecord
 import io.onema.ktrobots.server.service.GameLogic
@@ -22,14 +22,19 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.lang.RuntimeException
-import kotlin.math.PI
-import kotlin.math.atan2
 
+/**
+ * This controller scans for enemies with in a heading and resolution
+ */
 @RestController
 @RequestMapping("/scan")
 class ScanController(val repo: GameTableRepository) {
 
+    //--- Methods ---
+
+    /**
+     * Scan for enemies within the given scan heading and resolution.
+     */
     @PostMapping
     fun scan(@RequestBody request: ScanEnemiesRequest): ScanEnemiesResponse {
         val gameRecord: GameRecord = repo.findByPrimaryKey(request.gameId).orElseThrow{ RuntimeException("Game ${request.gameId} not found") }
@@ -37,8 +42,8 @@ class ScanController(val repo: GameTableRepository) {
         val robotOption = GameLogic.scanRobots(gameRecord.game, robot, request.heading, request.resolution)
         return if (robotOption.isPresent) {
             val other = robotOption.get()
-            val distance = distance(robot.x, robot.y, other.x, other.y)
-            val heading = angleToXY(other.x, other.y, robot)//
+            val distance = distanceToXY(robot, other)
+            val heading = angleToXY(other, robot)
             ScanEnemiesResponse(found = true, distance = distance, heading = heading)
         } else {
             ScanEnemiesResponse()

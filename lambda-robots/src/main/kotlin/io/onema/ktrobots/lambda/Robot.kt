@@ -11,72 +11,83 @@
 
 package io.onema.ktrobots.lambda
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.HttpClient
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.features.logging.DEFAULT
-import io.ktor.client.features.logging.LogLevel
-import io.ktor.client.features.logging.Logger
-import io.ktor.client.features.logging.Logging
-import io.ktor.client.request.post
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
 import io.onema.ktrobots.commons.domain.*
 import io.onema.ktrobots.commons.utils.angleToXY
 import io.onema.ktrobots.commons.utils.distanceToXY
 import io.onema.ktrobots.commons.utils.normalizeAngle180
-import kotlinx.coroutines.runBlocking
+import io.onema.ktrobots.lambda.utils.LambdaRobotStateTable
+import io.onema.ktrobots.lambda.utils.ScanClient
 import org.apache.logging.log4j.LogManager
-import java.util.*
-import kotlin.math.*
+import org.apache.logging.log4j.Logger
+import kotlin.math.abs
+import kotlin.math.min
+import kotlin.math.sqrt
+import kotlin.random.Random
 
 
+/**
+ * Base robot class. This has the entry point to the robot and is in charge of loading and saving it's state
+ * It also provides several convenience methods including a scan method to talk to the game server.
+ */
 abstract class Robot {
 
-    //--- Fields ---
-    val mapper: ObjectMapper
+    //--- Properties ---
+    private val mapper: ObjectMapper
         get() = jacksonObjectMapper()
 
-    val table: LambdaRobotStateTable
+    private val table: LambdaRobotStateTable
         get() = LambdaRobotStateTable()
 
+    //--- Fields ---
     protected lateinit var robot: LambdaRobot
+
     protected lateinit var gameInfo: GameInfo
 
     private val httpClient = HttpClient() {
         install(JsonFeature) {
             serializer = JacksonSerializer()
         }
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.NONE
-        }
         install(HttpTimeout) {
-            requestTimeoutMillis = 120000
+            requestTimeoutMillis = 700
         }
     }
 
     private lateinit var scanClient: ScanClient
 
     //--- Methods ---
+
+    /**
+     * Get the build of the robot. Returns a lambda robot build and lambda robot state pair
+     */
     abstract fun getBuild(state: LambdaRobotState): Pair<LambdaRobotBuild, LambdaRobotState>
 
+    /**
+     * Get the next action for the robot. Returns a lambda robot action and lambda robot state pair
+     */
     abstract fun getAction(state: LambdaRobotState): Pair<LambdaRobotAction, LambdaRobotState>
 
+    /**
+     * Handle the lambda request to get the build or action of the robot
+     */
     fun handle(request: LambdaRobotRequest): LambdaRobotResponse {
         log.info("Request: ${mapper.writeValueAsString(request)}")
         log.info("Table name ${System.getenv("GAME_STATE_TABLE")}")
         robot = request.lambdaRobot
         gameInfo = request.gameInfo
-        scanClient = ScanClient(request.gameInfo.apiUrl, request.gameId, robot.id, httpClient, mapper)
+        scanClient = ScanClient(
+            request.gameInfo.apiUrl,
+            request.gameId,
+            robot.id,
+            httpClient
+        )
 
-        val robotId = if(request.lambdaRobot.id.isEmpty())  RobotFactory.generateId(request.index, request.gameId) else request.lambdaRobot.id
+        val robotId = if(request.lambdaRobot.id.isEmpty())  LambdaRobot.generateId(request.index, request.gameId) else request.lambdaRobot.id
         log.info("Checking for Robot ID: $robotId")
         val record: LambdaRobotStateRecord = table
             .getById(robotId)
@@ -102,7 +113,8 @@ abstract class Robot {
     }
 
     /**
-     * @return distance to the nearest object
+     * Call the game server to request the distance and heading to the
+     * nearest object if one was found
      */
     fun scan(heading: Double, resolution: Double): ScanEnemiesResponse {
         val response = scanClient.scan(heading, resolution)
@@ -115,7 +127,6 @@ abstract class Robot {
      * Returns a value between -180 and 180 degrees
      */
     fun angleToXY(x: Double, y: Double): Double {
-//        return normalizeAngle(atan2(x - robot.x, y - robot.y) * 180.0 / PI)
         return angleToXY(x, y, robot)
     }
 
@@ -123,9 +134,6 @@ abstract class Robot {
      * Determine the distance relative to the current robot position
      */
     fun distanceToXY(x: Double, y: Double): Double {
-//        val deltaX = x - robot.x
-//        val deltaY = y - robot.y
-//        return sqrt(deltaX.pow(2.0) + deltaY.pow(2.0))
         return distanceToXY(x, y, robot)
     }
 
@@ -133,13 +141,11 @@ abstract class Robot {
      * Normalize angle to be between -180 and 180
      */
     fun normalizeAngle(angle: Double): Double {
-//        val result = angle % 360.0
-//        return if(result < -180.0) result + 360.0 else result
         return normalizeAngle180(angle)
     }
 
     /**
-     * Fire a missile in a given direction with impact at a given distance.
+     * Extension Fire a missile in a given direction with impact at a given distance.
      * A missile can only be fired in the robot reload cooldown is 0
      */
     fun LambdaRobotAction.fireMissile(heading: Double, distance: Double): LambdaRobotAction {
@@ -148,7 +154,7 @@ abstract class Robot {
     }
 
     /**
-     * Fire a missile at the given position
+     * LambdaRobotAction extension function to fire a missile at the given position
      */
     fun LambdaRobotAction.fireMissileToXY(x: Double, y: Double): LambdaRobotAction {
         val heading = angleToXY(x, y)
@@ -156,6 +162,9 @@ abstract class Robot {
         return this.fireMissile(heading, distance)
     }
 
+    /**
+     * LambdaRobotAction extension function to move the robot at the given position
+     */
     fun LambdaRobotAction.moveToXY(x: Double, y: Double): LambdaRobotAction{
         val heading = angleToXY(x, y)
         val distance = distanceToXY(x, y)
@@ -178,41 +187,39 @@ abstract class Robot {
         }
     }
 
-    fun LambdaRobotState.initialize(): LambdaRobotState {
-        return this.copy(initialized = true)
+    /**
+     * Check if the robot is too close to the game board border
+     * and return a new random heading if it does
+     *
+     * @param minDistanceToEdge the minimum distance to check for before
+     *  making a turn, the value must be greater than 0 to be taken into consideration
+     */
+    fun getNewHeading(minDistanceToEdge: Int = 100): Double  = when {
+        minDistanceToEdge < 0 -> {
+            robot.heading
+        }
+        robot.x < minDistanceToEdge -> {
+            // Too close to the left, turn right
+            45.0 + Random.nextDouble() * 90.0
+        }
+        robot.x > (gameInfo.boardWidth - minDistanceToEdge) -> {
+            // Too close to the right, turn left
+            -45.0 - Random.nextDouble() * 90.0
+        }
+        robot.y < minDistanceToEdge -> {
+            // Too close to the bottom, turn up
+            -45.0 + Random.nextDouble() * 90.0
+        }
+        robot.y > (gameInfo.boardHeight - minDistanceToEdge) -> {
+            // Too close to the top, turn down
+            135.0 + Random.nextDouble() * 90.0
+        }
+        else -> {
+            robot.heading
+        }
     }
 
     companion object {
-        val log = LogManager.getLogger(LambdaRobotFunction::class.java)
-    }
-}
-
-class LambdaRobotStateTable {
-    private val mapper: DynamoDBMapper
-        get() = DynamoDBMapper(
-            AmazonDynamoDBClientBuilder.defaultClient(),
-            DynamoDBMapperConfig.builder().withTableNameOverride(tableOverride).build())
-
-    private val tableOverride: DynamoDBMapperConfig.TableNameOverride
-        get() = DynamoDBMapperConfig.TableNameOverride.withTableNameReplacement(
-            System.getenv("GAME_STATE_TABLE"))
-
-    fun getById(id: String): Optional<LambdaRobotStateRecord> {
-        return Optional.ofNullable(mapper.load(LambdaRobotStateRecord::class.java, id))
-    }
-
-    fun save(state: LambdaRobotStateRecord) {
-        mapper.save(state)
-    }
-}
-
-class ScanClient(private val apiUrl: String, private val gameId: String, private val robotId: String, private val httpClient: HttpClient, private val mapper: ObjectMapper) {
-    fun scan(heading: Double, resolution: Double): ScanEnemiesResponse = runBlocking {
-        val requestBody = ScanEnemiesRequest(gameId, robotId, heading, resolution)
-        val response = httpClient.post<ScanEnemiesResponse>("http://$apiUrl/scan") {
-            contentType(ContentType.Application.Json)
-            body = requestBody
-        }
-        response
+        val log: Logger = LogManager.getLogger(LambdaRobotFunction::class.java)
     }
 }

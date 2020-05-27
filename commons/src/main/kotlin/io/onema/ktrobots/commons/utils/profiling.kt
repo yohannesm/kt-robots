@@ -11,6 +11,10 @@
 
 package io.onema.ktrobots.commons.utils
 
+/**
+ * Custom implementation of the measureTimeMillis that returns the value from the block call in
+ * a response to time pair
+ */
 inline fun <TResponse> measureTimeMillis(block: () -> TResponse): Pair<TResponse, Long> {
     val start = System.currentTimeMillis()
     val result: TResponse = block()

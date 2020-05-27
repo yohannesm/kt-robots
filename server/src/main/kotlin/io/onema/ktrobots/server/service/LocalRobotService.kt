@@ -13,35 +13,50 @@ package io.onema.ktrobots.server.service
 
 import io.onema.ktrobots.commons.domain.LambdaRobotRequest
 import io.onema.ktrobots.commons.domain.LambdaRobotResponse
-import io.onema.ktrobots.commons.utils.measureTimeMillis
 import io.onema.ktrobots.lambda.Robot
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import kotlin.reflect.full.createInstance
 
+/**
+ * This service calls a robot class with in the same project. The robotResourceName is the fully qualified
+ * name of the class, this includes the namespace and the class name.
+ */
 @Service
 class LocalRobotService : RobotService<LambdaRobotResponse> {
 
+    //--- Fields ---
     val robots = mutableMapOf<String, Robot>()
-    val log: Logger = LoggerFactory.getLogger(LocalRobotService::class.java)
+
     // --- Methods ---
+
     /**
-     * Invoke Local function
+     * Invoke Local function. The robotResourceName is the fully qualified name of the class including namespace
+     * and class name.
      */
     override fun callRobot(robotResourceName: String, request: LambdaRobotRequest): LambdaRobotResponse {
-        val id = request.lambdaRobot.id
-        if (!robots.containsKey(id) || id.isEmpty()) {
-            val robotClass = Class.forName(robotResourceName).kotlin
-            val robot: Robot = robotClass.createInstance() as Robot
-            robots[id] = robot
+        return try {
+            val id = request.lambdaRobot.id
+            if (!robots.containsKey(id) || id.isEmpty()) {
+                val robotClass = Class.forName(robotResourceName).kotlin
+                val robot: Robot = robotClass.createInstance() as Robot
+                robots[id] = robot
+            }
+            val robot = robots[id] ?: throw Exception("Unable to find robot with id $id")
+            robot.handle(request)
+        } catch (e: Exception) {
+            LambdaRobotResponse(hasError = true, errorMessage = e.message ?: "An error occurred but could not get any information from the exception.")
+
         }
-        val robot = robots[id] ?: throw Exception("Unable to find robot with id $id")
-        return robot.handle(request)
     }
 
     /**
      * Deserialize invocation response object
      */
     override fun deserialize(response: LambdaRobotResponse): LambdaRobotResponse = response
+
+    companion object {
+        protected val log: Logger = LoggerFactory.getLogger(GameLogic::class.java)
+    }
 }

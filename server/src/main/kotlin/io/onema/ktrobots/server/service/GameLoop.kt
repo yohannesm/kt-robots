@@ -20,23 +20,30 @@ import io.onema.ktrobots.server.domain.GameRecord
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.isActive
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.messaging.simp.SimpMessagingTemplate
 
-
+/**
+ * Main game loop, this takes care of interacting with the game logic on every turn
+ */
 class GameLoop<TRobot : RobotService<TResponse>, TResponse>(val template: SimpMessagingTemplate, val repo: GameTableRepository, robotService: TRobot) {
 
+    //--- Fields ---
     val log: Logger = LoggerFactory.getLogger(GameLoop::class.java)
+
     val logic = GameLogic(robotService)
 
+    //--- Methods ---
+
+    /**
+     * Start the game loop
+     */
     suspend fun start(game: Game) = coroutineScope {
-        log.info("Starting")
+        log.info("Game has started!")
         try {
             val lastGame =
             (0..game.info.maxGameTurns).fold(game) { currentGame, i ->
-                log.info("Turn $i in game IS ACTIVE: $isActive ${game.id}")
                 val updatedGame = turn(i, currentGame.id)
                 ensureActive()
                 updatedGame
@@ -49,6 +56,9 @@ class GameLoop<TRobot : RobotService<TResponse>, TResponse>(val template: SimpMe
         }
     }
 
+    /**
+     * Turn calls the appropriate method based on the game state on each turn
+     */
     fun turn(turnNumber: Int, gameId: String): Game {
         // Get new game state from DB
         val gameRecord: GameRecord = repo.findByPrimaryKey(gameId).orElseThrow{ CancellationException("No game found") }
@@ -64,8 +74,7 @@ class GameLoop<TRobot : RobotService<TResponse>, TResponse>(val template: SimpMe
             }
         }
 
-
-        updatedGame.messages.forEach { log.info(it.text) }
+        updatedGame.messages.forEach { log.info("📢 ${it.text}") }
         template.convertAndSend("/topic/game", GameRecord(game = updatedGame))
         val gameInfo = updatedGame.info.copy(gameTurn = turnNumber + 1)
         repo.save(GameRecord(gameId, updatedGame.copy(info = gameInfo), gameRecord.lambdaRobotArns))
@@ -83,12 +92,12 @@ class GameLoop<TRobot : RobotService<TResponse>, TResponse>(val template: SimpMe
 
     private fun computeNextTurn(gameRecord: GameRecord): Game {
         val game = gameRecord.game
-        log.info("Starting turn ${game.info.gameTurn}. Invoking ${game.aliveCount()} robots (total: ${game.robots.count()})")
+        log.info("\uD83C\uDFCE️ Star turn (#${game.info.gameTurn}) Invoking ${game.aliveCount()} robots (total: ${game.robots.count()}) for Game: ${game.id}")
         val (updatedGame, time) = measureTimeMillis { logic.nextTurn(game) }
-        log.info("End turn ($time ms): ${game.info.gameTurn}. ${game.aliveCount()} robots alive")
+        log.info("\uD83C\uDFC1 End turn (#${game.info.gameTurn}) in $time ms: ${game.aliveCount()} robots alive")
         val timeToSleep = (game.info.secondsPerTurn * 1000).toLong() - time
         if(timeToSleep > 0) {
-            log.info("Sleeping for $timeToSleep ms")
+            log.info("\uD83D\uDE34 Sleeping for $timeToSleep ms")
             Thread.sleep(timeToSleep)
         }
         return updatedGame

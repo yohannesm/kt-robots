@@ -13,16 +13,6 @@ import kotlinx.coroutines.coroutineScope
 /**
  * This extension function was taken from:
  * https://jivimberg.io/blog/2018/05/04/parallel-map-in-kotlin/
- */
-suspend fun <A, B> Iterable<A>.parallelMap(block: suspend (A) -> B): List<B> = coroutineScope {
-    map {
-        async {
-            block(it)
-        }
-    }.awaitAll()
-}
-
-/**
  * Modified version parallel map to be used with mapIndexed
  */
 suspend fun <A, B> Iterable<A>.parallelMapIndexed(block: suspend (Int, A) -> B): List<B> = coroutineScope {

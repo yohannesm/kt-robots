@@ -14,6 +14,9 @@ package io.onema.ktrobots.server.domain
 import com.amazonaws.services.dynamodbv2.datamodeling.*
 import io.onema.ktrobots.commons.domain.Game
 
+/**
+ * This class contains the information that will be saved in the game state table
+ */
 @DynamoDBTable(tableName = "KT-Robots-Server-GameTable")
 data class GameRecord(
 

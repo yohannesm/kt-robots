@@ -5,6 +5,7 @@ provider "aws" {
   version = ">= 2.52"
   region  = var.region
 }
+data "aws_caller_identity" "current" {}
 
 # ----------------------------------------
 # get the main vpc and subnets
@@ -17,9 +18,6 @@ data "aws_vpc" "main" {
 
 data "aws_subnet_ids" "main" {
   vpc_id = data.aws_vpc.main.id
-//  tags = {
-//    type = "public"
-//  }
 }
 
 
@@ -41,6 +39,10 @@ resource "aws_security_group_rule" "task_ingress_8080" {
 # ----------------------------------------
 resource "aws_ecs_cluster" "cluster" {
   name = "${var.name_prefix}-cluster"
+  capacity_providers = ["FARGATE_SPOT"]
+  default_capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+  }
 }
 
 # ----------------------------------------
@@ -58,7 +60,7 @@ resource "aws_ecr_repository" "ktrobots_server" {
   }
 
   provisioner "local-exec" {
-    command = "./build-image.sh ${var.region}"
+    command = "./build-image.sh ${data.aws_caller_identity.current.account_id} ${var.region}"
     working_dir = "../"
   }
 }
@@ -100,8 +102,12 @@ module "fargate" {
   task_container_port = 8080
 
   desired_count = 1
-  task_definition_cpu = 2048
-  task_definition_memory = 4096
+  // See the combination of possible values here:
+  // https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-cpu-memory-error.html
+  task_definition_cpu = 512
+  //task_definition_cpu = 2048
+  task_definition_memory = 1024
+  //task_definition_memory = 4096
 
   task_container_environment = {
     ENV = "dev"

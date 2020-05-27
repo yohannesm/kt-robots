@@ -17,14 +17,26 @@ import org.socialsignin.spring.data.dynamodb.repository.config.EnableDynamoDBRep
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import software.amazon.awssdk.services.lambda.LambdaAsyncClient
-import software.amazon.awssdk.services.lambda.LambdaAsyncClientBuilder
 
+
+/**
+ * This class builds different aws clients
+ */
 @Configuration
 @EnableDynamoDBRepositories(basePackages = ["io.onema.ktrobots.server.data"])
 class AWSConfig {
+
+    //--- Methods ---
+
+    /**
+     * Get a new DynamoDB client
+     */
     @Bean
     fun amazonDynamoDB(): AmazonDynamoDBAsync = AmazonDynamoDBAsyncClientBuilder.defaultClient()
 
+    /**
+     * Get a new lambda async client
+     */
     @Bean
     fun amazonLambdaClient(): LambdaAsyncClient = LambdaAsyncClient.builder().build()
 }

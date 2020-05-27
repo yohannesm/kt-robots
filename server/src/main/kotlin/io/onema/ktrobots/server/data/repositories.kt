@@ -16,8 +16,21 @@ import org.socialsignin.spring.data.dynamodb.repository.EnableScan
 import org.springframework.data.repository.CrudRepository
 import java.util.*
 
+/**
+ * DynamoDB repository
+ */
 @EnableScan
 interface GameTableRepository : CrudRepository<GameRecord, String> {
+
+    //--- Methods ---
+
+    /**
+     * Method to get the game state by primary key
+     */
     fun findByPrimaryKey(pk: String): Optional<GameRecord>
+
+    /**
+     * Method to delete the game state by primary key
+     */
     fun deleteBy(pk: String)
 }

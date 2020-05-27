@@ -4,7 +4,7 @@ export default class WebSocketClient {
     this.wss = wss;
     this.output = element;
     this.onMessage = onMessage;
-    this.socket = new SockJS('/gs-guide-websocket');
+    this.socket = new SockJS("/gs-guide-websocket");
     this.stompClient = Stomp.over(this.socket);
     this._init();
   }
@@ -33,8 +33,8 @@ export default class WebSocketClient {
   _init() {
     const self = this;
     this.stompClient.connect({}, function (frame) {
-      console.log('Connected: ' + frame);
-      self.stompClient.subscribe('/topic/game', function (game) {
+      console.log("Connected: " + frame);
+      self.stompClient.subscribe("/topic/game", function (game) {
         self._onMessage(game);
       });
     });

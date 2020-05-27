@@ -23,6 +23,10 @@ import software.amazon.awssdk.services.lambda.model.InvokeRequest
 import software.amazon.awssdk.services.lambda.model.InvokeResponse
 import java.util.concurrent.CompletableFuture
 
+/**
+ * This service calls robots hosted in lambda functions. The robotResourceName is the
+ * Lambda ARN.
+ */
 @Service
 class LambdaRobotService(private val lambda: LambdaAsyncClient) : RobotService<CompletableFuture<InvokeResponse>> {
 

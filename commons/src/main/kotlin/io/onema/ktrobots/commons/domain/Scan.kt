@@ -11,6 +11,9 @@
 
 package io.onema.ktrobots.commons.domain
 
+/**
+ * Scan enemies server request
+ */
 data class ScanEnemiesRequest(
     val gameId: String = "",
     val robotId: String = "",
@@ -18,6 +21,9 @@ data class ScanEnemiesRequest(
     val resolution: Double = 0.0
 )
 
+/**
+ * Scan enemies server response includes a flag if a target was found and the distance and heading to the target
+ */
 data class ScanEnemiesResponse(
     val found: Boolean = false,
     val distance: Double = 0.0,

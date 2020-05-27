@@ -61,6 +61,11 @@ tasks.withType<KotlinCompile> {
         jvmTarget = "11"
     }
 }
+
+task("buildImage", Exec::class) {
+    dependsOn("bootJar")
+    commandLine("./build-image.sh")
+}
 task("initServer", Exec::class) {
     workingDir("./infrastructure")
     dependsOn("bootJar")

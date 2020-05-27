@@ -21,10 +21,15 @@ import kotlin.math.*
 import kotlin.random.Random
 import kotlin.streams.toList
 
+/**
+ * Main logic for the game
+ */
 class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotService: TRobot) {
 
-    val gameMessages = mutableListOf<Message>()
-    val log: Logger = LoggerFactory.getLogger(GameLogic::class.java)
+    //--- Fields ---
+    private val gameMessages = mutableListOf<Message>()
+
+    //--- Methods ---
 
     /**
      * Initialize the game by getting each of the robots build and placing them on the board
@@ -34,8 +39,8 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
         val (robots, t1) = measureTimeMillis { buildRobots(game, lambdaRobotArns) }
         log.info("⏱️ Getting robots builds took $t1 ms")
 
-        val (positionedRobots, t2) = measureTimeMillis {  placeOnGameBoard(game.info, robots) }
-        log.info("⏱️ Placing robots in the board took $t2 ms")
+        val (positionedRobots, t2) = measureTimeMillis { placeOnGameBoard(game, robots) }
+        log.debug("⏱️ Placing robots in the board took $t2 ms")
         return game.copy(messages = gameMessages, robots = positionedRobots, status = GameStatus.nextTurn)
     }
 
@@ -51,19 +56,19 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
 
         // Apply all robot actions
         val (gameWithActions, t2) = measureTimeMillis { applyAllActionsToGame(game, robotsToActions) }
-        log.info("⏱️ Applying all robot actions took $t2 ms ")
+        log.debug("⏱️ Applying all robot actions took $t2 ms ")
 
         // Move all robots
         val (gameWithMoves, t3) = measureTimeMillis { moveAllRobotsInGame(gameWithActions) }
-        log.info("⏱️ Moving all robot took $t3 ms ")
+        log.debug("⏱️ Moving all robot took $t3 ms ")
 
         // Update missile states
         val (gameWithMissileUpdates, t4) = measureTimeMillis { updateAllMissiles(gameWithMoves) }
-        log.info("⏱️ Updating missiles took $t4 ms ")
+        log.debug("⏱️ Updating missiles took $t4 ms ")
 
         // Update game status to finished if it needs to be updated
         val (gameWithUpdatedState, t5) = measureTimeMillis { updateGameStatus(gameWithMissileUpdates) }
-        log.info("⏱️ Updating game status took $t5 ms ")
+        log.debug("⏱️ Updating game status took $t5 ms ")
 
         gameWithUpdatedState.copy(messages = gameMessages)
     }
@@ -89,7 +94,7 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
                 val action = if (!response.hasError) {
                     response.robotAction
                 } else {
-                    gameMessages.add("ACTION ERROR: ${robot.name}, will maintain speed and heading. Error: ${response.errorMessage}", game)
+                    gameMessages.add("\uD83D\uDEA8 ACTION ERROR: ${robot.name}(R${robot.index}), will maintain speed and heading. Error: ${response.errorMessage}", game)
                     LambdaRobotAction(speed = robot.speed, heading = robot.heading)
                 }
                 robot to action
@@ -293,7 +298,7 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
     }
 
     private fun moveMissile(game: Game, missile: LambdaRobotMissile): Game {
-        val moveData = moveObject(game, missile.x, missile.y, missile.distance, missile.speed, missile.heading, missile.range, missile.robotId)
+        val moveData = moveObject(game, missile.x, missile.y, missile.distance, missile.speed, missile.heading, missile.range)
         val updatedMissile = if(moveData.collision) {
             missile.copy(status = MissileStatus.explodingDirect, speed = 0.0, x = moveData.x, y = moveData.y)
         } else {
@@ -319,19 +324,12 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
                 val build = response.robotBuild
 
                 // use the build to create the robots and place them in the board
-                val (robot, description) = try {
-
+                val (robot, description) = if (!response.hasError) {
                     // Build robot using the build from lambda
-                    if (!response.hasError) {
-                        RobotFactory.create(i, build, game, arn)
-                    } else {
-                        // there was an error getting the response from the robot function, set it as dead
-                        LambdaRobot(status = LambdaRobotStatus.dead) to response.errorMessage
-                    }
-                } catch (e: Exception) {
-
-                    // There was an error getting the robot build, disqualify robot
-                    LambdaRobot(status = LambdaRobotStatus.dead) to "Failed to get build from the lambda function: $arn"
+                    LambdaRobot.create(i, build, game, arn)
+                } else {
+                    // there was an error getting the response from the robot function, set it as dead
+                    LambdaRobot(status = LambdaRobotStatus.dead) to response.errorMessage
                 }
                 val message = if (robot.status == LambdaRobotStatus.alive) {
                     "${robot.name} R${robot.index} has joined the battle with the following config: $description"
@@ -347,8 +345,7 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
 
     companion object {
 
-        //--- Functions ---
-
+        private val log: Logger = LoggerFactory.getLogger(GameLogic::class.java)
 
         /**
          * Finds all robots that are alive from the locatable object and sorts them by distance.
@@ -360,13 +357,18 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
                                                  func: (TLocatable, Pair<LambdaRobot, Double>) -> TLocatable): TLocatable {
             return game.robots
                 .filter { it.isAlive() && obj.id != it.id}
-                .map { it to distance(it.x, it.y, obj.x, obj.y) }
+                .map { it to distanceToXY(it.x, it.y, obj.x, obj.y) }
                 .sortedBy { (_, distance) -> distance }
                 .fold(obj, func)
         }
 
+        /**
+         * The a set of coordinates (x, y), the total traveled distance by the object, the speed, heading and
+         * total range, compute the updated information and return a a MoveData object that represents
+         * the updated state.
+         */
         fun moveObject(game: Game, startX: Double, startY: Double, startDistance: Double,
-                       speed: Double, heading: Double, range: Double, id: String = ""): MoveData {
+                       speed: Double, heading: Double, range: Double): MoveData {
             val distance = startDistance + speed * game.info.secondsPerTurn
 
             // Ensure robot cannot move beyond its max range
@@ -405,18 +407,42 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
             }
         }
 
-        fun placeOnGameBoard(info: GameInfo, robots: List<LambdaRobot>): List<LambdaRobot> {
+        /**
+         * Tail recursive function that assigns robots a place in the game board.
+         * This functions ensures that the minimum distance between robots is fulfiled
+         * and if it is not, it will retry up to 100 times.
+         */
+        tailrec fun placeOnGameBoard(game: Game, robots: List<LambdaRobot>, count: Int = 0): List<LambdaRobot> {
+            log.debug("Placing robots on game board. Try #$count")
+            val info = game.info
             val marginWidth = info.boardWidth * 0.1
             val marginHeight = info.boardHeight * 0.1
 
-            return robots.map {
+            val updatedRobots = robots.map {
                 val x = Random.nextDouble() * (info.boardWidth - 2.0 * marginWidth)
                 val y = Random.nextDouble() * (info.boardHeight - 2.0 * marginHeight)
                 it.copy(x = x, y = y)
             }
-            // TODO verify placement
+
+            // Verify placement
+            val tryAgain = updatedRobots.flatMap{ r1 ->
+                updatedRobots.filter{r1 != it}.map { r2 ->
+                    distanceToXY(r1, r2) < game.minRobotStartDistance
+                }
+            }.any {it}
+
+            return if (tryAgain && count < 100) {
+                placeOnGameBoard(game, updatedRobots, count + 1)
+            } else {
+                updatedRobots
+            }
+
         }
 
+        /**
+         * Scan for other robots given a heading and a resolution.
+         * This will return the first robot if finds by distance.
+         */
         fun scanRobots(game: Game, robot: LambdaRobot, heading: Double, resolution: Double): Optional<LambdaRobot> {
             val effectiveResolution = 0.01.coerceAtLeast(resolution.coerceAtMost(robot.radar.maxResolution))
             var robotOption = Optional.empty<LambdaRobot>()
@@ -442,7 +468,9 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
             return robotOption
         }
 
-        // --- Extension functions ---
+        /**
+         * Convenience extension function to add a message to the current list of messages
+         */
         fun MutableCollection<Message>.add(message: String, game: Game) {
             this.add(Message(game.info.gameTurn, message))
         }

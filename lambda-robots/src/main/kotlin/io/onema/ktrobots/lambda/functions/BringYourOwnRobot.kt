@@ -15,10 +15,16 @@ import io.onema.ktrobots.commons.domain.*
 import io.onema.ktrobots.lambda.LambdaRobotFunction
 import io.onema.ktrobots.lambda.Robot
 
+/**
+ * This is your robot, update the build and ensure you add custom logic to
+ * move, evade, attack, scan and more.
+ */
 class BringYourOwnRobot : Robot(), LambdaRobotFunction {
 
+    //--- Fields ---
     private val NAME = "BringYourOwnRobot"
 
+    //--- Methods ---
     override fun getBuild(state: LambdaRobotState): Pair<LambdaRobotBuild, LambdaRobotState> {
         return LambdaRobotBuild(
             name = NAME,

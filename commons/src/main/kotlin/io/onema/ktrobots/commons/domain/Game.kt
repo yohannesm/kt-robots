@@ -15,6 +15,9 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBDocument
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperFieldModel
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTyped
 
+/**
+ * Enum of the status of the game
+ */
 enum class GameStatus {
     undefined,
     start,
@@ -23,12 +26,19 @@ enum class GameStatus {
     error
 }
 
+/**
+ * Interface for objects that have a position in the game board such as missiles and robots
+ */
 interface Locatable {
     var id: String
     var x: Double
     var y: Double
 }
 
+/**
+ * Main Game data class. This class contains all the information about the
+ * game for each turn
+ */
 @DynamoDBDocument
 data class Game(
 
@@ -44,13 +54,21 @@ data class Game(
     // game characteristics
     var info: GameInfo = GameInfo(),
 
-    var robotTimeoutSeconds: Double = 0.0,
-    var minRobotStartDistance: Double = 0.0
+    var robotTimeoutSeconds: Double = 15.0,
+    var minRobotStartDistance: Double = 50.0
 
 ) {
 
+    //--- Methods ---
+
+    /**
+     * Convenience method to count how many robots in the game are still alive
+     */
     fun aliveCount(): Int = robots.count {it.status == LambdaRobotStatus.alive }
 
+    /**
+     * Update the robot
+     */
     fun updateRobot(newRobot: LambdaRobot): Game {
         // Remove the old robot and update it with the new one
         val updatedRobots = robots.filter {it.id != newRobot.id} + newRobot
@@ -59,6 +77,9 @@ data class Game(
         return this.copy(robots = updatedRobots)
     }
 
+    /**
+     * Update the information about a missle
+     */
     fun updateMissile(newMissile: LambdaRobotMissile): Game {
         // Remove the old missile and update it with the new one
         val updatedMissiles = missiles.filter {it.id != newMissile.id} + newMissile
@@ -67,9 +88,15 @@ data class Game(
         return this.copy(missiles = updatedMissiles)
     }
 
+    /**
+     * Remove any missiles that are in the destroyed state
+     */
     fun cleanupMissiles(): Game = copy(missiles = missiles.filter { it.status != MissileStatus.destroyed })
 }
 
+/**
+ * Game mechanics information
+ */
 @DynamoDBDocument
 data class GameInfo(
     /**
@@ -128,6 +155,9 @@ data class GameInfo(
     var apiUrl: String = ""
 )
 
+/**
+ * Status of the missile
+ */
 enum class MissileStatus{
     undefined,
     flying,
@@ -137,10 +167,16 @@ enum class MissileStatus{
     destroyed;
 
     companion object {
+        /**
+         * Convenience function to get a list of all the exploding statuses
+         */
         fun explodingStatus(): List<MissileStatus> = listOf(explodingFar, explodingNear, explodingDirect)
     }
 }
 
+/**
+ * Base class for the Missile. This class implements locatable
+ */
 @DynamoDBDocument
 data class LambdaRobotMissile(
     override var id: String = "",
@@ -161,8 +197,17 @@ data class LambdaRobotMissile(
     var nearHitDamageBonus: Double = 0.0,
     var farHitDamageBonus: Double = 0.0
 ) : Locatable {
+
+    //--- Methods ---
+
+    /**
+     * Create a copy of the object with the updated move data
+     */
     fun doMove(moveData: MoveData): LambdaRobotMissile = copy(x = moveData.x, y = moveData.y, distance = moveData.distance)
 
+    /**
+     * Depending on the status of the missile, this method would create a copy with the corresponding updated status
+     */
     fun updateExplodeStatus(): LambdaRobotMissile {
         return when(status) {
             MissileStatus.flying -> this
@@ -174,13 +219,18 @@ data class LambdaRobotMissile(
     }
 }
 
+/**
+ * Class to send messages to the game client
+ */
 @DynamoDBDocument
 data class Message(
     var gameTurn: Int = 0,
     var text: String = ""
 )
 
-
+/**
+ * Helper class to help keep track of a moving object.
+ */
 data class MoveData(
     val x: Double = 0.0,
     val y: Double = 0.0,

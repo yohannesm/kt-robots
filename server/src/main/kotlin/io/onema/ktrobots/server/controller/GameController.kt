@@ -20,17 +20,18 @@ import io.onema.ktrobots.server.service.LocalRobotService
 import kotlinx.coroutines.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.SendTo
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
 import software.amazon.awssdk.services.lambda.LambdaAsyncClient
-import java.net.InetAddress
 import java.util.*
 
 
+/**
+ * Websocket controller, this deals with starting and stopping a game
+ */
 @Controller
 class GameController(
     val repo: GameTableRepository,
@@ -38,10 +39,16 @@ class GameController(
     val lambda: LambdaAsyncClient,
     val environment: Environment
 ) {
+
+    //--- Fields ---
     val log: Logger = LoggerFactory.getLogger(GameController::class.java)
 
     val loopJobs = mutableMapOf<String, Job>()
 
+    //--- Methods ---
+    /**
+     * Start a new game
+     */
     @MessageMapping("/start")
     @SendTo("/topic/game")
     fun startGame(req: StartGameRequest): GameResponse {
@@ -72,10 +79,13 @@ class GameController(
             when(req.robotType) {
                 "lambda" -> {
 
+                    // Start a new Lambda game loop
                     val lambdaGameLoop = GameLoop(template, repo, LambdaRobotService(lambda))
                     lambdaGameLoop.start(game)
                 }
                 else -> {
+
+                    // Start a new local game loop
                     val localGameLoop = GameLoop(template, repo, LocalRobotService())
                     localGameLoop.start(game)
                 }
@@ -84,6 +94,10 @@ class GameController(
         return GameResponse(game)
     }
 
+    /**
+     * Force to stop the current game, this will cancelAndJoin the running gameloop and delete the
+     * DynamoDB record for the game.
+     */
     @MessageMapping("/stop")
     @SendTo("/topic/game")
     fun gameStop(req: StopGameRequest): GameResponse {

@@ -16,15 +16,21 @@ import io.onema.ktrobots.lambda.LambdaRobotFunction
 import io.onema.ktrobots.lambda.Robot
 import kotlin.random.Random
 
+/**
+ * RoboDog chases after a target if it finds one, it has an ultra short range radar, which means that it needs
+ * to be very close to it's target before it chases
+ */
 class RoboDog : Robot(), LambdaRobotFunction {
+
+    //--- Methods ---
     override fun getBuild(state: LambdaRobotState): Pair<LambdaRobotBuild, LambdaRobotState> {
-        return Pair(LambdaRobotBuild(
+        return LambdaRobotBuild(
             name = "RoboDog",
             armor = LambdaRobotArmorType.light,
             engine = LambdaRobotEngineType.standard,
             radar = LambdaRobotRadarType.ultraShortRange,
             missile = LambdaRobotMissileType.cannon
-        ), state.copy(initialized = true))
+        ) to state.copy(initialized = true)
     }
 
     override fun getAction(state: LambdaRobotState): Pair<LambdaRobotAction, LambdaRobotState> {
@@ -37,27 +43,7 @@ class RoboDog : Robot(), LambdaRobotFunction {
         val scan = scan(robot.heading, robot.radar.maxResolution)
 
         // Check if the robot needs to turn
-        val heading = when {
-            robot.x < 100 -> {
-                // Too close to the left, turn right
-                45.0 + Random.nextDouble() * 90.0
-            }
-            robot.x > (gameInfo.boardWidth - 100) -> {
-                // Too close to the right, turn left
-                -45.0 - Random.nextDouble() * 90.0
-            }
-            robot.y < 100 -> {
-                // Too close to the bottom, turn up
-                -45.0 + Random.nextDouble() * 90.0
-            }
-            robot.y > (gameInfo.boardHeight - 100) -> {
-                // Too close to the top, turn down
-                135.0 + Random.nextDouble() * 90.0
-            }
-            else -> {
-                robot.heading
-            }
-        }
+        val heading = getNewHeading(20)
         val scanHeading = if(scan.found) scan.heading else heading
         val action = if(robot.reloadCoolDown == 0.0) {
             val distance =

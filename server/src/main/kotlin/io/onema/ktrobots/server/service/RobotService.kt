@@ -14,9 +14,21 @@ package io.onema.ktrobots.server.service
 import io.onema.ktrobots.commons.domain.LambdaRobotRequest
 import io.onema.ktrobots.commons.domain.LambdaRobotResponse
 
+/**
+ * Interface for the service that will serve as the means to communicate with the robots
+ */
 interface RobotService<AResponse> {
 
+    // --- Methods ---
+
+    /**
+     * Make a call to the robot using the robot identifier and the LambdaRobotRequest
+     */
     fun callRobot(robotResourceName: String, request: LambdaRobotRequest): AResponse
 
+    /**
+     * Deserialize the message returned by the call to the robot, depending on the implementation
+     * The response will look different
+     */
     fun deserialize(response: AResponse): LambdaRobotResponse
 }

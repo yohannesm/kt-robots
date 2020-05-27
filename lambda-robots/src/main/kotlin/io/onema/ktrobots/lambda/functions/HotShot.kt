@@ -17,7 +17,17 @@ import io.onema.ktrobots.lambda.Robot
 import kotlin.math.max
 import kotlin.random.Random
 
+/**
+ * HotShot will do up to 2 scans per turn. If a target if found the scan resolution is halved allowing
+ * the robot to refine the targeting area for the next turn.
+ * If no targets are found, it will rotate the scan heading.
+ * If after a full 360 sweep to targets are detected, HotShot will move to a new location
+ * If HotShot is hit, it will move to a new location
+ * HotShot will only shoot if the cooldawn is 0 and a target has been detected
+ */
 class HotShot : Robot(), LambdaRobotFunction {
+
+    //--- Methods ---
     override fun getBuild(state: LambdaRobotState): Pair<LambdaRobotBuild, LambdaRobotState> {
         return LambdaRobotBuild(
             name = "HotShot",
@@ -28,14 +38,6 @@ class HotShot : Robot(), LambdaRobotFunction {
         ) to state
     }
 
-    /**
-     * HotShot will do up to 2 scans per turn. If a target if found the scan resolution is halved allowing
-     * the robot to refine the targeting area for the next turn.
-     * If no targets are found, it will rotate the scan heading.
-     * If after a full 360 sweep to targets are detected, HotShot will move to a new location
-     * If HotShot is hit, it will move to a new location
-     * HotShot will only shoot if the cooldawn is 0 and a target has been detected
-     */
     override fun getAction(state: LambdaRobotState): Pair<LambdaRobotAction, LambdaRobotState> {
 
         // Check if the state need to be initialized

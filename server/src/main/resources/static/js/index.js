@@ -275,7 +275,7 @@ function giveMedal(position, score, isAlive) {
   if (score === 0 && isAlive) {
     return "🤖";
   } else if(!isAlive) {
-    return "💀"
+    return "💀";
   }
 
   switch (position) {
