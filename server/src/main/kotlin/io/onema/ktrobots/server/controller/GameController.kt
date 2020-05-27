@@ -52,7 +52,44 @@ class GameController(
     @MessageMapping("/start")
     @SendTo("/topic/game")
     fun startGame(req: StartGameRequest): GameResponse {
+        val gameOption: Optional<GameRecord> = loadExistingGame()
 
+        return if (gameOption.isEmpty) {
+           startNewGame(req)
+        } else {
+            GameResponse(gameOption.get().game)
+        }
+    }
+
+    /**
+     * Force to stop the current game, this will cancelAndJoin the running gameloop and delete the
+     * DynamoDB record for the game.
+     */
+    @MessageMapping("/stop")
+    @SendTo("/topic/game")
+    fun gameStop(req: StopGameRequest): GameResponse {
+        log.info("Stopping game ${req.gameId}")
+        val itemOption: Optional<GameRecord> = repo.findByPrimaryKey(req.gameId)
+
+        // Delete the item if it is present in the table
+        itemOption.ifPresent(this::deleteLoop)
+        return GameResponse(Game(status = GameStatus.finished))
+    }
+
+    private fun loadExistingGame(): Optional<GameRecord> {
+        // Check if there are any active jobs and return a game id
+        val results = loopJobs.filter { it.value.isActive }
+            .map { (gameId, job) -> if (job.isActive) gameId else "" }
+            .filter { it.isNotEmpty() }
+            .map { repo.findByPrimaryKey(it) }
+        return if (results.isNotEmpty()) {
+            results.first()
+        } else {
+            Optional.empty()
+        }
+    }
+
+    private fun startNewGame(req: StartGameRequest): GameResponse {
         val game = Game(
             id = UUID.randomUUID().toString(),
             status = GameStatus.start,
@@ -76,7 +113,7 @@ class GameController(
         repo.save(record)
 
         loopJobs[game.id] = CoroutineScope(Dispatchers.IO).launch {
-            when(req.robotType) {
+            when (req.robotType) {
                 "lambda" -> {
 
                     // Start a new Lambda game loop
@@ -92,21 +129,6 @@ class GameController(
             }
         }
         return GameResponse(game)
-    }
-
-    /**
-     * Force to stop the current game, this will cancelAndJoin the running gameloop and delete the
-     * DynamoDB record for the game.
-     */
-    @MessageMapping("/stop")
-    @SendTo("/topic/game")
-    fun gameStop(req: StopGameRequest): GameResponse {
-        log.info("Stopping game ${req.gameId}")
-        val itemOption: Optional<GameRecord> = repo.findByPrimaryKey(req.gameId)
-
-        // Delete the item if it is present in the table
-        itemOption.ifPresent(this::deleteLoop)
-        return GameResponse(Game(status = GameStatus.finished))
     }
 
     private fun deleteLoop(record: GameRecord) {
