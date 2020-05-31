@@ -52,10 +52,7 @@ data class Game(
     var messages: List<Message> = listOf(),
 
     // game characteristics
-    var info: GameInfo = GameInfo(),
-
-    var robotTimeoutSeconds: Double = 15.0,
-    var minRobotStartDistance: Double = 50.0
+    var info: GameInfo = GameInfo()
 
 ) {
 
@@ -152,7 +149,17 @@ data class GameInfo(
     /**
      * The URL of the game server
      */
-    var apiUrl: String = ""
+    var apiUrl: String = "",
+
+    /**
+     * The max time a lambda function can run for before it timesout
+     */
+    var robotTimeoutSeconds: Double = 15.0,
+
+    /**
+     * The minimum distance between robots at startup
+     */
+    var minRobotStartDistance: Double = 50.0
 )
 
 /**

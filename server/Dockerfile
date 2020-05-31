@@ -4,4 +4,4 @@ RUN mkdir /app
 
 COPY ./build/libs/server-dev.jar /app/server-dev.jar
 
-CMD ["java", "-jar", "/app/server-dev.jar"]
+CMD ["java", "-jar", "-Dserver.port=80", "/app/server-dev.jar"]

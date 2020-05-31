@@ -106,7 +106,7 @@ This task creates and does a few things:
 - Create an ECR docker repository to host the image
 - Pushes the image to the new docker repository
 - Creates a Fargate cluster
-- Creates a service and runs a task exposing port 8080
+- Creates a service and runs a task exposing port 80
 - The terraform code is in the `server/infrastructure` directory
 
 
@@ -123,10 +123,10 @@ Once the deployment has finished, you have to log in to AWS to get the server IP
 - Copy the Public IP
 - You can also expand the task details and get a link to the CloudWatch logs
 
-Once you have the IP paste it in your browser using the port `8080.`
+Once you have the IP paste it in your browser.
 ```bash
 # For example
-http://3.15.171.35:8080/
+http://3.1.11.111/
 ```
 </details>
 

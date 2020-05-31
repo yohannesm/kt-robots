@@ -94,7 +94,7 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
                 val action = if (!response.hasError) {
                     response.robotAction
                 } else {
-                    gameMessages.add("\uD83D\uDEA8 ACTION ERROR: ${robot.name}(R${robot.index}), will maintain speed and heading. Error: ${response.errorMessage}", game)
+                    gameMessages.add("🚨 ACTION ERROR: ${robot.name}(R${robot.index}), will maintain speed and heading. Error: ${response.errorMessage}", game)
                     LambdaRobotAction(speed = robot.speed, heading = robot.heading)
                 }
                 robot to action
@@ -211,10 +211,10 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
                 if (from != null && damage > 0.0) {
                     if(!robotWithDamage.isAlive()) {
                         val (f, d) = if(robotWithDamage.id == from.id) {
-                            gameMessages.add("$robotWithDamage, killed itself", game)
+                            gameMessages.add("🤦‍♀️️ $robotWithDamage, killed itself", game)
                             from to robotWithDamage
                         } else {
-                            gameMessages.add("$robotWithDamage was killed by $from", game)
+                            gameMessages.add("🦾 $robotWithDamage was killed by $from", game)
                             from.copy(totalKills = from.totalKills + 1) to robotWithDamage
                         }
                         updatedRobots.add(f)
@@ -222,9 +222,9 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
 
                     } else {
                         if(robotWithDamage.id == from.id) {
-                            gameMessages.add("$robotWithDamage, caused $damage damage to itself", game)
+                            gameMessages.add("🤦‍♀️️ $robotWithDamage, caused $damage damage to itself", game)
                         } else {
-                            gameMessages.add("$robotWithDamage received $damage $damageType from  $from", game)
+                            gameMessages.add("🦾 $robotWithDamage received $damage $damageType from  $from", game)
                         }
                         updatedRobots.add(from)
                         updatedRobots.add(robotWithDamage)
@@ -270,9 +270,9 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
         val robotWithDamage = if(moveData.collision) {
             val r = movedRobot.doDamage(movedRobot.armor.collisionDamage, game.info.gameTurn, isCollision = true)
             if(!r.isAlive()) {
-                gameMessages.add("${r.name} (R${r.index}) was destroyed by wall collision", game)
+                gameMessages.add("💥 $r was destroyed by wall collision", game)
             } else {
-                gameMessages.add("${r.name} (R${r.index}) received ${r.armor.collisionDamage} damage by wall collision", game)
+                gameMessages.add("💥 $r received ${r.armor.collisionDamage} damage by wall collision", game)
             }
             r
         } else {
@@ -285,9 +285,9 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
             if(current.isAlive() && distance < game.info.collisionRange) {
                 val r = current.doDamage(robot.armor.collisionDamage, game.info.gameTurn, isCollision = true)
                 if(!r.isAlive()) {
-                    gameMessages.add("${r.name} (R${r.index}) was destroyed by collision with ${other.name}", game)
+                    gameMessages.add("💥 $r was destroyed by collision with ${other.name}", game)
                 } else {
-                    gameMessages.add("${r.name} (R${r.index}) was damaged ${r.armor.collisionDamage} by collision with ${other.name}", game)
+                    gameMessages.add("💥 $r was damaged ${r.armor.collisionDamage} by collision with ${other.name}", game)
                 }
                 r
             } else {
@@ -332,9 +332,9 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
                     LambdaRobot(status = LambdaRobotStatus.dead) to response.errorMessage
                 }
                 val message = if (robot.status == LambdaRobotStatus.alive) {
-                    "${robot.name} R${robot.index} has joined the battle with the following config: $description"
+                    "$robot has joined the battle with the following config: $description"
                 } else {
-                    "${robot.name} R${robot.index} was disqualified due to bad configuration: $description"
+                    "$robot was disqualified due to bad configuration: $description"
                 }
                 gameMessages.add(message, game)
                 robot
@@ -427,7 +427,7 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
             // Verify placement
             val tryAgain = updatedRobots.flatMap{ r1 ->
                 updatedRobots.filter{r1 != it}.map { r2 ->
-                    distanceToXY(r1, r2) < game.minRobotStartDistance
+                    distanceToXY(r1, r2) < game.info.minRobotStartDistance
                 }
             }.any {it}
 

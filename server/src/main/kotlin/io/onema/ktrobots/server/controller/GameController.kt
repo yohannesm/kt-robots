@@ -103,10 +103,10 @@ class GameController(
                 nearHitRange = req.nearHitRange,
                 farHitRange = req.farHitRange,
                 collisionRange = req.collisionRange,
-                apiUrl = "${req.apiHost}:${environment.getProperty("local.server.port")}"
-            ),
-            minRobotStartDistance = req.minRobotStartDistance,
-            robotTimeoutSeconds = req.robotTimeoutSeconds
+                apiUrl = "${req.apiHost}:${environment.getProperty("local.server.port")}",
+                robotTimeoutSeconds = req.robotTimeoutSeconds,
+                minRobotStartDistance = req.minRobotStartDistance
+            )
         )
         log.info("Starting game ${game.id}")
         val record = GameRecord(game.id, game, req.robotArns)

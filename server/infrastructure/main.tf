@@ -28,8 +28,8 @@ resource "aws_security_group_rule" "task_ingress_8080" {
   security_group_id        = module.fargate.service_sg_id
   type                     = "ingress"
   protocol                 = "tcp"
-  from_port                = 8080
-  to_port                  = 8080
+  from_port                = 80
+  to_port                  = 80
   cidr_blocks              = ["0.0.0.0/0"]
   ipv6_cidr_blocks         = ["::/0"]
 }
@@ -99,7 +99,7 @@ module "fargate" {
   task_container_assign_public_ip = true
 
   // port, default protocol is HTTP
-  task_container_port = 8080
+  task_container_port = 80
 
   desired_count = 1
   // See the combination of possible values here:

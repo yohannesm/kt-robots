@@ -66,9 +66,7 @@ resource "null_resource" "lambda_created" {
   provisioner "local-exec" {
     command = "aws lambda add-permission --function-name ${module.lambda.function_arn} --action lambda:InvokeFunction --statement-id ${var.function_name}-invoke-function --principal '*' --region ${var.region}"
   }
-}
 
-resource "null_resource" "lambda_destroyed" {
   provisioner "local-exec" {
     when = destroy
     command = "aws lambda remove-permission --function-name ${module.lambda.function_arn} --statement-id ${var.function_name}-invoke-function --region ${var.region}"
