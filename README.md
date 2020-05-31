@@ -40,7 +40,7 @@ The challenge requires an AWS account. AWS provides a [*Free Tier*](https://aws.
 
 Run the following command to clone the KT-Robots challenge. 
 ```bash
-git@github.com:onema/kt-robots.git
+git clone git@github.com:onema/kt-robots.git
 cd kt-robots
 ```
 </details>
