@@ -471,9 +471,9 @@ The following methods are available to make some operations easier:
 When shooting a missile a heading and a range must be set. Depending on the missile, the range cannot exceed the Max. Range.
 Each missile causes damage only when it reaches its set range, none otherwise. When a missile explodes it can cause up to three types of damage:
 
-| **Direct hit damage**                             | **Near hit damage**                            | **Far hit damage**                           |
-| ------------------------------------------------- | ---------------------------------------------- | -------------------------------------------- | 
-| ![direct-hit-damage](images/direct-hit-damage.png)| ![near-hit-damage](images/near-hit-damage.png) | ![far-hit-damage](images/far-hit-damage.png) | 
+| **Shooting**                    | **Direct hit damage**                             | **Near hit damage**                            | **Far hit damage**                           |
+| ------------------------------- | ------------------------------------------------- | ---------------------------------------------- | -------------------------------------------- | 
+| ![shooting](images/shooting.png)| ![direct-hit-damage](images/direct-hit-damage.png)| ![near-hit-damage](images/near-hit-damage.png) | ![far-hit-damage](images/far-hit-damage.png) | 
 
 | Missile Type    | Max. Range   | Velocity | Direct Hit Bonus | Near Hit Bonus | Far Hit Bonus | Cooldown | Points |
 | --------------- | ------------ | -------- | ---------------- | -------------- | ------------- | -------- | ------ |
