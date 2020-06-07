@@ -426,49 +426,62 @@ The following methods are available to make some operations easier:
 
 ### Robot Build
 
-By default, 8 build points are available to allocate in any fashion. The robot is disqualified if its build exceeds the maximum number of build points.
-
-The default configuration for each is shown in bold font and an asterisk (*).
+**By default, 8 build points are available to allocate in any fashion. The robot is disqualified if its build exceeds the maximum number of build points.**
 
 #### Radar
+
+![radar](images/radar.png)
 
 | Radar Type       | Radar Range  | Radar Resolution | Points |
 | ---------------- | ------------ | ---------------- | ------ |
 | ultraShortRange  | 200 meters   | 45 degrees       | 0      |
 | shortRange       | 400 meters   | 20 degrees       | 1      |
-| **midRange (*)** | 600 meters   | 10 degrees       | 2      |
+| midRange         | 600 meters   | 10 degrees       | 2      |
 | longRange        | 800 meters   | 8 degrees        | 3      |
 | ultraLongRange   | 1,000 meters | 5 degrees        | 4      |
 
 #### Engine
 
+![engine](images/engine.png)
+
 | Engine Type      | Max. Speed | Acceleration | Points |
 | ---------------- | ---------- | ------------ | ------ |
 | economy          | 60 m/s     | 7 m/s^2      | 0      |
 | compact          | 80 m/s     | 8 m/s^2      | 1      |
-| **standard (*)** | 100 m/s    | 10 m/s^2     | 2      |
+| standard         | 100 m/s    | 10 m/s^2     | 2      |
 | large            | 120 m/s    | 12 m/s^2     | 3      |
 | extraLarge       | 140 m/s    | 13 m/s^2     | 4      |
 
 #### Armor
 
+![armor](images/armor.png)
+
 | Armor Type     | Direct Hit | Near Hit | Far Hit | Collision | Max. Speed | Deceleration | Points |
 | -------------- | ---------- | -------- | ------- | --------- | ---------- | ------------ | ------ |
 | ultraLight     | 50         | 25       | 12      | 10        | +35 m/s    | 30 m/s^2     | 0      |
 | light          | 16         | 8        | 4       | 3         | +25 m/s    | 25 m/s^2     | 1      |
-| **medium (*)** | 8          | 4        | 2       | 2         | -          | 20 m/s^2     | 2      |
+| medium         | 8          | 4        | 2       | 2         | -          | 20 m/s^2     | 2      |
 | heavy          | 4          | 2        | 1       | 1         | -25 m/s    | 15 m/s^2     | 3      |
 | ultraHeavy     | 2          | 1        | 0       | 1         | -45 m/s    | 10 m/s^2     | 4      |
 
 #### Missile
 
+![missile](images/missiles.png)
+
+When shooting a missile a heading and a range must be set. Depending on the missile, the range cannot exceed the Max. Range.
+Each missile causes damage only when it reaches its set range, none otherwise. When a missile explodes it can cause up to three types of damage:
+
+| **Direct hit damage**                             | **Near hit damage**                            | **Far hit damage**                           |
+| ------------------------------------------------- | ---------------------------------------------- | -------------------------------------------- | 
+| ![direct-hit-damage](images/direct-hit-damage.png)| ![near-hit-damage](images/near-hit-damage.png) | ![far-hit-damage](images/far-hit-damage.png) | 
+
 | Missile Type    | Max. Range   | Velocity | Direct Hit Bonus | Near Hit Bonus | Far Hit Bonus | Cooldown | Points |
 | --------------- | ------------ | -------- | ---------------- | -------------- | ------------- | -------- | ------ |
 | dart            | 1,200 meters | 250 m/s  | 0                | 0              | 0             | 0 sec    | 0      |
 | arrow           | 900 meters   | 200 m/s  | 1                | 1              | 0             | 1 sec    | 1      |
-| **javelin (*)** | 700 meters   | 150 m/s  | 3                | 2              | 1             | 2 sec    | 2      |
+| javelin         | 700 meters   | 150 m/s  | 3                | 2              | 1             | 2 sec    | 2      |
 | cannon          | 500 meters   | 100 m/s  | 6                | 4              | 2             | 3 sec    | 3      |
-| bFG             | 350 meters   | 75 m/s   | 12               | 8              | 4             | 5 sec    | 4      |
+| BFG             | 350 meters   | 75 m/s   | 12               | 8              | 4             | 5 sec    | 4      |
 
 </details>
 
