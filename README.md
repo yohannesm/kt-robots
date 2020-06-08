@@ -485,7 +485,7 @@ Each missile causes damage only when it reaches its set range, none otherwise. W
 
 </details>
 
-# DON'T FORGET TO CLEAN UP!
+## DON'T FORGET TO CLEAN UP 💸!
 
 The ECS Fargate task run on spot instances and this is the cost for running the server:
 
