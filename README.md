@@ -142,6 +142,7 @@ Use the **Advance Configuration** to change any default settings.  Use **Clear S
 </details>
 
 ## Level 2: Create an Attack Strategy
+![attack](images/man-shooting-gun.png)
 
 <details>
 <summary>Develop your attack strategy</summary>
@@ -242,7 +243,7 @@ Please don't be the target robot, and nobody wants to be the target robot!
 </details>
 
 ## Level 3: Create an Evasion Strategy
-
+![evade](images/man-evading.png)
 
 <details>
 <summary>Develop your evasion strategy</summary>
@@ -261,6 +262,7 @@ Beware that a robot cannot change heading without suddenly stopping if its speed
 </details>
 
 ## Level 4: Take on the Champ
+![take on the champ](images/the-champ.png)
 
 <details>
 <summary>Test if your robot is good enough</summary>
@@ -281,6 +283,8 @@ Set the proper equipment to suit your attack and evasion strategies.
 
 
 ## BOSS LEVEL: Enter the Multi-Team Deathmatch Competition
+
+![death match](images/fight.png)
 
 <details>
 <summary>Test if your robot is the best</summary>
