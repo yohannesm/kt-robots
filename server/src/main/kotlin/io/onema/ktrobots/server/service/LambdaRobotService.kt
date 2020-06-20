@@ -22,6 +22,7 @@ import software.amazon.awssdk.services.lambda.model.InvocationType
 import software.amazon.awssdk.services.lambda.model.InvokeRequest
 import software.amazon.awssdk.services.lambda.model.InvokeResponse
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
 
 /**
  * This service calls robots hosted in lambda functions. The robotResourceName is the
@@ -34,6 +35,7 @@ class LambdaRobotService(private val lambda: LambdaAsyncClient) : RobotService<C
     private val mapper: ObjectMapper = jacksonObjectMapper()
 
     // --- Methods ---
+
     /**
      * Invoke Lambda function
      */
@@ -51,12 +53,20 @@ class LambdaRobotService(private val lambda: LambdaAsyncClient) : RobotService<C
      * Deserialize invocation response object
      */
     override fun deserialize(response: CompletableFuture<InvokeResponse>): LambdaRobotResponse {
+        return try {
+            deserializePayload(response)
+        } catch (e: CompletionException) {
+            LambdaRobotResponse(hasError = true, errorMessage = "The lambda function is taking too long and has timed out. ${e.message}")
+        }
+    }
+
+    private fun deserializePayload(response: CompletableFuture<InvokeResponse>): LambdaRobotResponse {
         val invokeResponse: InvokeResponse = response.join()
         val payload = invokeResponse.payload().asUtf8String()
         return try {
             mapper.readValue(payload, LambdaRobotResponse::class.java)
         } catch (e: Exception) {
-            LambdaRobotResponse(hasError = true, errorMessage = payload ?: "Error deserializing lambda response. No message found")
+            LambdaRobotResponse(hasError = true, errorMessage = payload ?: "Error de-serializing lambda response. No message found")
         }
     }
 }

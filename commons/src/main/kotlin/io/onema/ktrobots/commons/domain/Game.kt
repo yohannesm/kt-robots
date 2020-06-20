@@ -159,7 +159,7 @@ data class GameInfo(
     /**
      * The minimum distance between robots at startup
      */
-    var minRobotStartDistance: Double = 50.0
+    var minRobotStartDistance: Double = 300.0
 )
 
 /**

@@ -1,0 +1,111 @@
+<html lang="en">
+  <head>
+    <title>Kotlin Robots</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="KT Robots, the game!" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <link href="css/site.css" rel="stylesheet" />
+    <link href="css/bare.min.css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="mainMenuContainer">
+      <section>
+        <h1>Kotlin Robots</h1>
+        <br />
+          <table>
+            <tr>
+              <td>
+                <input type="hidden" id="apiHost">
+                <label>
+                  Board Width
+                  <input type="text" value="1000" id="boardWidth" />
+                </label>
+              </td>
+              <td>
+                <label>
+                  Board Height
+                  <input type="text" value="1000" id="boardHeight" />
+                </label>
+              </td>
+              <td>
+                <label>
+                  Seconds Per Turn
+                  <input type="text" value="0.3" id="secondsPerTurn" />
+                </label>
+              </td>
+              <td>
+                <label>
+                  Max Turns
+                  <input type="text" value="100" id="maxTurns" />
+                </label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label>
+                  Direct Hit Range
+                  <input type="text" value="5.0" id="directHitRange" />
+                </label>
+              </td>
+              <td>
+                <label>
+                  Near Hit Range
+                  <input type="text" value="20.0" id="nearHitRange" />
+                </label>
+              </td>
+              <td>
+                <label>
+                  Far Hit Range
+                  <input type="text" value="40.0" id="farHitRange" />
+                </label>
+              </td>
+              <td>
+                <label>
+                  Collision Range
+                  <input type="text" value="8.0" id="collisionRange" />
+                </label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label>
+                  Max Build Points
+                  <input type="text" value="8" id="maxBuildPoints">
+                </label>
+              </td>
+              <td>
+                <label>
+                  Robot Type
+                  <input type="text" value="lambda" id="robotType">
+                </label>
+              </td>
+            </tr>
+          </table>
+        <br />
+      </section>
+    </div>
+    <div id="gameBoardStatsContainer">
+      <h2>Game Board</h2>
+      <div class="flex-container">
+        <div id="gameBoardContainer"></div>
+        <div id="statsBox">
+          <div id="robotsStats"></div>
+          <h2>Messages</h2>
+          <pre id="statsBoxMessages"></pre>
+        </div>
+      </div>
+    </div>
+    <div class="benchmark"><span id="fps">fps: 0</span>, <span id="turn">turn: 0</span></div>
+    <div id="output" style="display: none;"></div>
+    <script type="module" src="js/index.js"></script>
+    <script src="/webjars/sockjs-client/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+  </body>
+</html>

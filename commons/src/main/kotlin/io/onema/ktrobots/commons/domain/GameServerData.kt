@@ -26,7 +26,7 @@ data class StartGameRequest(
     var nearHitRange: Double = 0.0,
     var farHitRange: Double = 0.0,
     var collisionRange: Double = 0.0,
-    var minRobotStartDistance: Double = 50.0,
+    var minRobotStartDistance: Double = 300.0,
     var robotTimeoutSeconds: Double = 15.0,
     var robotType: String = "lambda",
     var apiHost: String = ""

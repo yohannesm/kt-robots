@@ -1,0 +1,130 @@
+html,
+body {
+    width: 100%;
+    height: 100;
+    margin: 0 auto;
+    padding: 1%;
+    background-color: black;
+    color: #aaaaaa !important;
+}
+
+h1 {
+    color: black;
+}
+
+html,
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+button {
+    font-family: "Press Start 2P";
+    color: #00de5e;
+}
+
+#statsBoxMessages {
+    color: #00771e !important
+}
+
+#gameBoardContainer {
+    border: 1px solid #ffe300;
+}
+#gameBoardStatsContainer,
+#leaderBoardContainer {
+    display: none;
+    width: auto;
+}
+.flex-container {
+    display: flex;
+}
+#statsBox {
+    border: 1px solid darkgray;
+    border-left: none;
+    min-width: 400px;
+    max-height: 1000px;
+    overflow: auto;
+    padding: 1%;
+    background-color: white;
+}
+#robotsStats > div > table {
+    font-size: 87%;
+}
+
+.game-board {
+    background-color: #00a;
+}
+.benchmark {
+    font-size: x-small;
+    color: darkgreen;
+    alignment: right;
+}
+
+[btn],
+button:not([class]),
+button[xx],
+input[type="submit"] {
+    background: #0000aa !important;
+    border: darkgray !important;
+    color: yellow !important;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted white;
+}
+
+input[type="text"],
+input[type="number"]{
+    /*background: yellow !important;*/
+    /*border: chartreuse !important;*/
+    color: yellow !important;
+    /*border-bottom: 1px solid #ff5500;*/
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    min-width: 300px;
+    max-width: 700px;
+    background-color: black;
+    padding: 10px;
+    color: #fff;
+    border-radius: 6px;
+    font-family: "Arial";
+    font-size: 12px;
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+/* Optional styling */
+summary::-webkit-details-marker {
+    font-size: 140%;
+}
+summary:focus {
+    outline-style: none;
+}
+
+table:not([class]) td,
+table:not([class]) th,
+table[xx] td,
+table[xx] th {
+    border-width: 0 !important;
+}
+
+.robot-dead {
+    background-color: black;
+}
+h4 {
+    display: inline-block;
+}
+
+select:not([class]),
+select[xx] {
+    padding: 0 !important;
+}

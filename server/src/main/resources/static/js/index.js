@@ -10,7 +10,7 @@ let wsClient;
 let lastTime = new Date().getTime();
 let lastFrameCount = 0;
 let gameMessages = [];
-const MAX_NUMBER_OF_MESSAGES = 15;
+const MAX_NUMBER_OF_MESSAGES = 30;
 
 
 async function init() {
@@ -162,11 +162,25 @@ function updateRobotStats(robots) {
   robots
     .forEach(robot => {
       const score = (robot.alive ? robot.score : robot.score * -1)/1000;
+      const robotsStats = document.getElementById("robotsStats");
+      let healthValue = Math.round(robot.maxDamage - robot.damage);
+      let colorMatch = '️💔';
+      if (healthValue < 10) {
+        colorMatch = '❣️';
+      } else if (healthValue >= 10 && healthValue < 40) {
+        colorMatch = '❤️';
+      } else if (healthValue >= 40 && healthValue < 60) {
+        colorMatch = '🧡';
+      } else if (healthValue >= 60 && healthValue < 80) {
+        colorMatch = '💛';
+      } else if (healthValue >= 70 && healthValue <= 100) {
+        colorMatch = '💚';
+      }
       let robotTemplate = html`
         <details ?open="${robot.status === "Alive"}" class="${robot.status !== "Alive" ? "robot-dead" : ""}">
           <summary>
             <h4>
-              ${robot.medal} (R${robot.index}) ${robot.name}: ${score.toFixed(2)}
+              ${robot.medal} (R${robot.index}) ${robot.name}: ${score.toFixed(2)} ${colorMatch}
               <span class="tooltip">
                 ℹ️
                 <pre class="tooltiptext">${JSON.stringify(robot, null, 2)}</pre>
