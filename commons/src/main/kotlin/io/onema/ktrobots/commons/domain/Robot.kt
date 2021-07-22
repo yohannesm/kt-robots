@@ -15,7 +15,6 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBDocument
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBIgnore
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperFieldModel
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTyped
-import java.util.*
 
 /**
  * Main lambda robot object, this holds all the information for the robot
@@ -30,12 +29,12 @@ data class LambdaRobot(
     /**
      * Globally unique robot ID.
      */
-    override var id: String = "",
+    override var id: String? = null,
 
     /**
      * Robot display name.
      */
-    var name: String = "",
+    var name: String? = null,
 
     /**
      * Robot ARN
@@ -219,6 +218,7 @@ data class LambdaRobot(
          * This ensures that the game config is respected
          */
         fun create(index: Int, build: LambdaRobotBuild, game: Game, arn: String): Pair<LambdaRobot, String> {
+            // TODO test with an invalid value
             val robot = LambdaRobot(
                 index = index,
                 id = generateId(index, game.id),
@@ -227,69 +227,58 @@ data class LambdaRobot(
                 arn = arn
             )
 
-            val radarOption: Optional<Radar> = when(build.radar) {
-                LambdaRobotRadarType.ultraShortRange -> Optional.of(UltraShortRange())
-                LambdaRobotRadarType.shortRange -> Optional.of(ShortRange())
-                LambdaRobotRadarType.midRange -> Optional.of(MidRange())
-                LambdaRobotRadarType.longRange -> Optional.of(LongRange())
-                LambdaRobotRadarType.ultraLongRange -> Optional.of(UltraLongRange())
+            val radar: Radar = when(build.radar) {
+                LambdaRobotRadarType.ultraShortRange -> UltraShortRange()
+                LambdaRobotRadarType.shortRange -> ShortRange()
+                LambdaRobotRadarType.midRange -> MidRange()
+                LambdaRobotRadarType.longRange -> LongRange()
+                LambdaRobotRadarType.ultraLongRange -> UltraLongRange()
 
                 // Invalid radar type, Will be disqualified
             }
 
-            val engineOption: Optional<Engine> = when(build.engine) {
-                LambdaRobotEngineType.economy -> Optional.of(Economy())
-                LambdaRobotEngineType.compact -> Optional.of(Compact())
-                LambdaRobotEngineType.standard -> Optional.of(Standard())
-                LambdaRobotEngineType.large -> Optional.of(Large())
-                LambdaRobotEngineType.extraLarge -> Optional.of(ExtraLarge())
+            val engine: Engine = when(build.engine) {
+                LambdaRobotEngineType.economy -> Economy()
+                LambdaRobotEngineType.compact -> Compact()
+                LambdaRobotEngineType.standard -> Standard()
+                LambdaRobotEngineType.large -> Large()
+                LambdaRobotEngineType.extraLarge -> ExtraLarge()
 
                 // Invalid engine type, will be disqualified
             }
 
-            val armorOption: Optional<Armor> = when(build.armor) {
-                LambdaRobotArmorType.ultraLight -> Optional.of(UltraLight())
-                LambdaRobotArmorType.light -> Optional.of(Light())
-                LambdaRobotArmorType.medium -> Optional.of(Medium())
-                LambdaRobotArmorType.heavy -> Optional.of(Heavy())
-                LambdaRobotArmorType.ultraHeavy -> Optional.of(UltraHeavy())
+            val armor: Armor = when(build.armor) {
+                LambdaRobotArmorType.ultraLight -> UltraLight()
+                LambdaRobotArmorType.light -> Light()
+                LambdaRobotArmorType.medium -> Medium()
+                LambdaRobotArmorType.heavy -> Heavy()
+                LambdaRobotArmorType.ultraHeavy -> UltraHeavy()
 
                 // Invalid armor type, will be disqualified
             }
 
-            val missileOption: Optional<Missile> = when(build.missile) {
-                LambdaRobotMissileType.dart -> Optional.of(Dart())
-                LambdaRobotMissileType.arrow -> Optional.of(Arrow())
-                LambdaRobotMissileType.javelin -> Optional.of(Javelin())
-                LambdaRobotMissileType.cannon -> Optional.of(Cannon())
-                LambdaRobotMissileType.BFG -> Optional.of(BFG())
+            val missile: Missile = when(build.missile) {
+                LambdaRobotMissileType.dart -> Dart()
+                LambdaRobotMissileType.arrow -> Arrow()
+                LambdaRobotMissileType.javelin -> Javelin()
+                LambdaRobotMissileType.cannon -> Cannon()
+                LambdaRobotMissileType.BFG -> BFG()
+                LambdaRobotMissileType.sniperRifle -> SniperRifle()
 
                 // Invalid missile type, will be disqualified
             }
 
             // Ensure game config is respected by the build
-            val isInvalidConfig = listOf(radarOption, engineOption, armorOption, missileOption).any {it.isEmpty}
-            return if(isInvalidConfig) {
-                // disqualified
-                val reason = "Invalid configuration type"
+            val totalPoints = radar.points + engine.points + armor.points + missile.points
+
+            // Check if build is under the max number of build points
+            return if(totalPoints > game.info.maxBuildPoints) {
+                val reason = "Total points $totalPoints, maxed allowed ${game.info.maxBuildPoints}"
                 robot.copy(status = LambdaRobotStatus.dead) to reason
-            } else {
-                val radar = radarOption.get()
-                val engine = engineOption.get()
-                val armor = armorOption.get()
-                val missile = missileOption.get()
-                val totalPoints = radar.points + engine.points + armor.points + missile.points
-
-                // Check if build is under the max number of build points
-                return if(totalPoints > game.info.maxBuildPoints) {
-                    val reason = "Total points $totalPoints, maxed allowed ${game.info.maxBuildPoints}"
-                    robot.copy(status = LambdaRobotStatus.dead) to reason
-                } else{
-                    val description = "Radar: ${radar.name}, Engine: ${engine.name}, Armor: ${armor.name}, Missile: ${missile.name}"
-                    robot.copy(radar = radar, engine = engine, armor = armor, missile = missile) to description
-                }
+            } else{
+                val description = "Radar: ${radar.name}, Engine: ${engine.name}, Armor: ${armor.name}, Missile: ${missile.name}"
+                robot.copy(radar = radar, engine = engine, armor = armor, missile = missile) to description
             }
-
         }
     }
 }

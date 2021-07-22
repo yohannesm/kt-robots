@@ -315,7 +315,7 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
                 val req = LambdaRobotRequest(command = LambdaRobotCommand.getBuild, gameInfo = game.info, index = i, gameId = game.id)
                 Triple(i, arn, robotService.callRobot(arn, req))
             }
-            // Serialize the result and get the build
+            // Deserialize the result and get the build
             .map { (i, arn, response) ->
                 Triple(i, arn, robotService.deserialize(response))
             }
@@ -363,8 +363,8 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
         }
 
         /**
-         * The a set of coordinates (x, y), the total traveled distance by the object, the speed, heading and
-         * total range, compute the updated information and return a a MoveData object that represents
+         * Given a set of coordinates (x, y), the total traveled distance by the object, the speed, heading, and
+         * total range, compute the updated information and return a MoveData object that represents
          * the updated state.
          */
         fun moveObject(game: Game, startX: Double, startY: Double, startDistance: Double,
@@ -476,4 +476,3 @@ class GameLogic<TRobot : RobotService<TResponse>, TResponse>(private val robotSe
         }
     }
 }
-

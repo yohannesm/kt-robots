@@ -49,10 +49,10 @@ class HotShot : Robot(), LambdaRobotFunction {
         }
 
         // scan left scan area
-        val leftScan = scan(state.scanHeading + state.scanResolution, state.scanResolution)
+        val leftScan = scan(state.scanHeading - state.scanResolution, state.scanResolution)
 
         val scan = if(leftScan.found && leftScan.distance > gameInfo.farHitRange && leftScan.distance <= robot.missile.range) {
-            log.info("Target found: scanHeading = ${state.scanHeading}, range = ${leftScan.distance}")
+            log("Target found", "scanHeading = ${state.scanHeading}, range = ${leftScan.distance}")
 
             // update scan heading
             state.scanHeading = normalizeAngle(state.scanHeading - state.scanResolution)
@@ -65,7 +65,7 @@ class HotShot : Robot(), LambdaRobotFunction {
             // scan right
             val rightScan = scan(state.scanHeading + state.scanResolution, state.scanResolution)
             if (rightScan.found && rightScan.distance > gameInfo.farHitRange && rightScan.distance <= robot.missile.range) {
-                log.info("Target found: scanHeading = ${state.scanHeading}, range = ${rightScan.distance}")
+                log("Target found", "scanHeading = ${state.scanHeading}, range = ${rightScan.distance}")
 
                 // update scan heading
                 state.scanHeading = normalizeAngle(state.scanHeading + state.scanResolution)
@@ -75,7 +75,7 @@ class HotShot : Robot(), LambdaRobotFunction {
                 state.targetRange = rightScan.distance
                 rightScan
             } else {
-               log.info("No target found: scanHeading = ${state.scanHeading}")
+               log("No target found", "scanHeading = ${state.scanHeading}")
 
                 // look into adjacent area
                 state.scanHeading = normalizeAngle(state.scanHeading + 3.0 * robot.radar.maxResolution)
@@ -105,13 +105,13 @@ class HotShot : Robot(), LambdaRobotFunction {
         if (state.gotoX == 0.0 || state.gotoY == 0.0) {
             val wasHurt = robot.damage > state.lastDamage
             if (wasHurt) {
-                log.info("Damage detected. taking evasive action")
+                log("Damage detected", "taking evasive action")
 
                 // Take evasive action
                 state.gotoX = gameInfo.collisionRange + Random.nextDouble() * (gameInfo.boardWidth - 2.0 * gameInfo.collisionRange)
                 state.gotoY = gameInfo.collisionRange + Random.nextDouble() * (gameInfo.boardHeight - 2.0 * gameInfo.collisionRange)
             } else if (state.noHitSweep >= 360 && (state.gotoX == 0.0 || state.gotoY == 0.0)) {
-                log.info("Nothing found in immediate surroundings. Moving to new location")
+                log("Nothing found in immediate surroundings", "Moving to new location")
 
                 // Move to a new random location on the board
                 state.gotoX = gameInfo.collisionRange + Random.nextDouble() * (gameInfo.boardWidth - 2.0 * gameInfo.collisionRange)

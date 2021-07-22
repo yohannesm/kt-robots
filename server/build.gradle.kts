@@ -1,9 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.3.0.RELEASE"
-    id("io.spring.dependency-management") version "1.0.9.RELEASE"
-    kotlin("plugin.spring") version "1.3.72"
+    id("org.springframework.boot") version "2.4.6"
+    id("io.spring.dependency-management") version "1.0.11.RELEASE"
+    kotlin("plugin.spring") version "1.5.10"
     kotlin("jvm")
 }
 
@@ -44,6 +44,8 @@ dependencies {
 
     // Other
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.11.0")
+//    implementation("org.springdoc:springdoc-openapi-ui:1.5.8")
+//    implementation("org.springdoc:springdoc-openapi-kotlin:1.5.8")
 
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
@@ -61,22 +63,12 @@ tasks.withType<KotlinCompile> {
         jvmTarget = "11"
     }
 }
-
-task("buildImage", Exec::class) {
+task("deploy-server", Exec::class) {
+    workingDir("./")
     dependsOn("bootJar")
-    commandLine("./build-image.sh")
+    commandLine("./deploy-server.sh")
 }
-task("initServer", Exec::class) {
-    workingDir("./infrastructure")
-    dependsOn("bootJar")
-    commandLine("terraform", "init", "-no-color")
-}
-task("deployServer", Exec::class) {
-    workingDir("./infrastructure")
-    dependsOn("initServer")
-    commandLine("terraform", "apply", "-auto-approve", "-no-color")
-}
-task("destroyServer", Exec::class) {
-    workingDir("./infrastructure")
-    commandLine("terraform", "destroy", "-auto-approve", "-no-color")
+task("delete-server", Exec::class) {
+    workingDir("./")
+    commandLine("./delete-server.sh")
 }

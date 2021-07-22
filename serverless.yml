@@ -1,0 +1,106 @@
+service: kt-robots
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: java11
+  profile: ${opt:aws-profile, 'default'}
+  timeout: 30
+  versionFunctions: false
+  memorySize: 2048
+  stage: dev
+  region: us-east-1
+  environment:
+    LOG_LEVEL: INFO
+    GAME_STATE_TABLE:
+      Ref: RobotState
+#  iam:
+#    role:
+#      statements:
+  iamRoleStatements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:GetItem
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource:
+            - Fn::GetAtt: [ RobotState, Arn ]
+            - Fn::Join: [ "/", [ Fn::GetAtt: [ RobotState, Arn ], "index", "*" ] ]
+        - Effect: Allow
+          Action:
+            - lambda:InvokeFunction
+          Resource: "*"
+    #    - Effect: Allow
+    #      Action:
+    #        - iam:PassRole
+    #        - iam:ListRoles
+    #      "Resource":
+    #        - "arn:aws:iam::*:role/*"
+
+package:
+  artifact: lambda-robots/build/libs/lambda-robots-dev-all.jar
+
+functions:
+
+  BringYourOwnRobot:
+    memorySize: 2048
+    handler:  io.onema.ktrobots.lambda.functions.BringYourOwnRobot::handleRequest
+    environment:
+
+  YosemiteSam:
+    memorySize: 2048
+    handler:  io.onema.ktrobots.lambda.functions.YosemiteSam::handleRequest
+    environment:
+
+  HotShot:
+    memorySize: 2048
+    handler:  io.onema.ktrobots.lambda.functions.HotShot::handleRequest
+    environment:
+
+  RoboDog:
+    memorySize: 2048
+    handler:  io.onema.ktrobots.lambda.functions.RoboDog::handleRequest
+    environment:
+
+  TargetRobot:
+    memorySize: 2048
+    handler:  io.onema.ktrobots.lambda.functions.TargetRobot::handleRequest
+    environment:
+
+resources:
+  Resources:
+    RobotState:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+
+  Outputs:
+    YourRobotArn:
+      Value:
+        "Fn::GetAtt": [BringYourOwnRobotLambdaFunction, Arn]
+      Description: The is the ARN of your robot, you will need this to run your game server
+
+    YosemiteSamArn:
+      Value:
+        "Fn::GetAtt": [YosemiteSamLambdaFunction, Arn]
+
+    HotShotArn:
+      Value:
+        "Fn::GetAtt": [HotShotLambdaFunction, Arn]
+
+    RoboDogArn:
+      Value:
+        "Fn::GetAtt": [RoboDogLambdaFunction, Arn]
+
+    TargetRobotArn:
+      Value:
+        "Fn::GetAtt": [TargetRobotLambdaFunction, Arn]

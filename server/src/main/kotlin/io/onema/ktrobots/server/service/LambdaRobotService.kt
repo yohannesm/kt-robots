@@ -13,6 +13,7 @@ package io.onema.ktrobots.server.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.onema.ktrobots.commons.domain.LambdaRobotRequest
 import io.onema.ktrobots.commons.domain.LambdaRobotResponse
 import org.springframework.stereotype.Service
@@ -64,7 +65,7 @@ class LambdaRobotService(private val lambda: LambdaAsyncClient) : RobotService<C
         val invokeResponse: InvokeResponse = response.join()
         val payload = invokeResponse.payload().asUtf8String()
         return try {
-            mapper.readValue(payload, LambdaRobotResponse::class.java)
+            mapper.readValue(payload)
         } catch (e: Exception) {
             LambdaRobotResponse(hasError = true, errorMessage = payload ?: "Error de-serializing lambda response. No message found")
         }

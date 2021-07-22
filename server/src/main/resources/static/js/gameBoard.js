@@ -58,16 +58,16 @@ export default class GameBoard {
         );
 
         // draw circle around robot with collision radius
-        this.context.beginPath();
-        this.context.strokeStyle = "yellow";
-        this.context.arc(
-          Math.round(robot.x),
-          Math.round(robot.y),
-          Math.round(game.collisionRange),
-          0,
-          2 * Math.PI
-        );
-        this.context.stroke();
+        // this.context.beginPath();
+        // this.context.strokeStyle = "yellow";
+        // this.context.arc(
+        //   Math.round(robot.x),
+        //   Math.round(robot.y),
+        //   Math.round(game.collisionRange),
+        //   0,
+        //   2 * Math.PI
+        // );
+        // this.context.stroke();
       }
     }
     this.context.restore();

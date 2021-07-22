@@ -30,7 +30,7 @@ enum class GameStatus {
  * Interface for objects that have a position in the game board such as missiles and robots
  */
 interface Locatable {
-    var id: String
+    var id: String?
     var x: Double
     var y: Double
 }
@@ -186,8 +186,8 @@ enum class MissileStatus{
  */
 @DynamoDBDocument
 data class LambdaRobotMissile(
-    override var id: String = "",
-    var robotId: String = "",
+    override var id: String? = null,
+    var robotId: String? = null,
 
     // current state
     @DynamoDBTyped(DynamoDBMapperFieldModel.DynamoDBAttributeType.S)

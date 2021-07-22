@@ -37,7 +37,7 @@ class LocalRobotService : RobotService<LambdaRobotResponse> {
      */
     override fun callRobot(robotResourceName: String, request: LambdaRobotRequest): LambdaRobotResponse {
         return try {
-            val id = request.lambdaRobot.id
+            val id = request.lambdaRobot.id ?: ""
             if (!robots.containsKey(id) || id.isEmpty()) {
                 val robotClass = Class.forName(robotResourceName).kotlin
                 val robot: Robot = robotClass.createInstance() as Robot

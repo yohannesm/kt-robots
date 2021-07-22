@@ -1,0 +1,545 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+  - url: "http://localhost:8080"
+    description: Generated server url
+paths:
+  /stop:
+    post:
+      tags:
+        - game-controller
+      operationId: gameStop
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StopGameRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/GameResponse"
+  /start:
+    post:
+      tags:
+        - game-controller
+      operationId: startGame
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartGameRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/GameResponse"
+  /scan:
+    post:
+      tags:
+        - scan-controller
+      operationId: scan
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScanEnemiesRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ScanEnemiesResponse"
+components:
+  schemas:
+    StopGameRequest:
+      required:
+        - action
+        - gameId
+      type: object
+      properties:
+        action:
+          type: string
+        gameId:
+          type: string
+    Armor:
+      required:
+        - collisionDamage
+        - deceleration
+        - directHitDamage
+        - farHitDamage
+        - name
+        - nearHitDamage
+        - points
+        - speedModifier
+      type: object
+      properties:
+        name:
+          type: string
+        points:
+          type: integer
+          format: int32
+        collisionDamage:
+          type: number
+          format: double
+        directHitDamage:
+          type: number
+          format: double
+        nearHitDamage:
+          type: number
+          format: double
+        farHitDamage:
+          type: number
+          format: double
+        deceleration:
+          type: number
+          format: double
+        speedModifier:
+          type: number
+          format: double
+    Engine:
+      required:
+        - acceleration
+        - maxSpeed
+        - name
+        - points
+      type: object
+      properties:
+        name:
+          type: string
+        points:
+          type: integer
+          format: int32
+        maxSpeed:
+          type: number
+          format: double
+        acceleration:
+          type: number
+          format: double
+    Game:
+      required:
+        - id
+        - info
+        - messages
+        - missiles
+        - robots
+        - status
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum:
+            - undefined
+            - start
+            - nextTurn
+            - finished
+            - error
+        missiles:
+          type: array
+          items:
+            $ref: "#/components/schemas/LambdaRobotMissile"
+        robots:
+          type: array
+          items:
+            $ref: "#/components/schemas/LambdaRobot"
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        info:
+          $ref: "#/components/schemas/GameInfo"
+    GameInfo:
+      required:
+        - apiUrl
+        - boardHeight
+        - boardWidth
+        - collisionRange
+        - directHitRange
+        - farHitRange
+        - gameTurn
+        - maxBuildPoints
+        - maxGameTurns
+        - minRobotStartDistance
+        - nearHitRange
+        - robotTimeoutSeconds
+        - secondsPerTurn
+      type: object
+      properties:
+        boardWidth:
+          type: number
+          format: double
+        boardHeight:
+          type: number
+          format: double
+        secondsPerTurn:
+          type: number
+          format: double
+        directHitRange:
+          type: number
+          format: double
+        nearHitRange:
+          type: number
+          format: double
+        farHitRange:
+          type: number
+          format: double
+        collisionRange:
+          type: number
+          format: double
+        gameTurn:
+          type: integer
+          format: int32
+        maxGameTurns:
+          type: integer
+          format: int32
+        maxBuildPoints:
+          type: integer
+          format: int32
+        apiUrl:
+          type: string
+        robotTimeoutSeconds:
+          type: number
+          format: double
+        minRobotStartDistance:
+          type: number
+          format: double
+    GameResponse:
+      required:
+        - game
+      type: object
+      properties:
+        game:
+          $ref: "#/components/schemas/Game"
+    LambdaRobot:
+      required:
+        - alive
+        - armor
+        - arn
+        - damage
+        - engine
+        - heading
+        - index
+        - maxDamage
+        - maxSpeed
+        - maxTurnSpeed
+        - missile
+        - radar
+        - reloadCoolDown
+        - speed
+        - status
+        - targetHeading
+        - targetSpeed
+        - timeOfDeathGameTurn
+        - totalCollisions
+        - totalDamageDealt
+        - totalKills
+        - totalMissileFiredCount
+        - totalMissileHitCount
+        - totalTravelDistance
+        - x
+        - "y"
+      type: object
+      properties:
+        index:
+          type: integer
+          format: int32
+        id:
+          type: string
+        name:
+          type: string
+        arn:
+          type: string
+        status:
+          type: string
+          enum:
+            - undefined
+            - alive
+            - dead
+        x:
+          type: number
+          format: double
+        y:
+          type: number
+          format: double
+        speed:
+          type: number
+          format: double
+        heading:
+          type: number
+          format: double
+        damage:
+          type: number
+          format: double
+        reloadCoolDown:
+          type: number
+          format: double
+        targetSpeed:
+          type: number
+          format: double
+        targetHeading:
+          type: number
+          format: double
+        totalTravelDistance:
+          type: number
+          format: double
+        totalMissileFiredCount:
+          type: integer
+          format: int32
+        totalMissileHitCount:
+          type: integer
+          format: int32
+        totalKills:
+          type: integer
+          format: int32
+        totalDamageDealt:
+          type: number
+          format: double
+        totalCollisions:
+          type: integer
+          format: int32
+        timeOfDeathGameTurn:
+          type: integer
+          format: int32
+        engine:
+          $ref: "#/components/schemas/Engine"
+        maxTurnSpeed:
+          type: number
+          format: double
+        radar:
+          $ref: "#/components/schemas/Radar"
+        maxDamage:
+          type: number
+          format: double
+        armor:
+          $ref: "#/components/schemas/Armor"
+        missile:
+          $ref: "#/components/schemas/Missile"
+        maxSpeed:
+          type: number
+          format: double
+        alive:
+          type: boolean
+    LambdaRobotMissile:
+      required:
+        - directHitDamageBonus
+        - distance
+        - farHitDamageBonus
+        - heading
+        - nearHitDamageBonus
+        - range
+        - speed
+        - status
+        - x
+        - "y"
+      type: object
+      properties:
+        id:
+          type: string
+        robotId:
+          type: string
+        status:
+          type: string
+          enum:
+            - undefined
+            - flying
+            - explodingDirect
+            - explodingNear
+            - explodingFar
+            - destroyed
+        x:
+          type: number
+          format: double
+        y:
+          type: number
+          format: double
+        distance:
+          type: number
+          format: double
+        speed:
+          type: number
+          format: double
+        heading:
+          type: number
+          format: double
+        range:
+          type: number
+          format: double
+        directHitDamageBonus:
+          type: number
+          format: double
+        nearHitDamageBonus:
+          type: number
+          format: double
+        farHitDamageBonus:
+          type: number
+          format: double
+    Message:
+      required:
+        - gameTurn
+        - text
+      type: object
+      properties:
+        gameTurn:
+          type: integer
+          format: int32
+        text:
+          type: string
+    Missile:
+      required:
+        - directHitDamageBonus
+        - farHitDamageBonus
+        - name
+        - nearHitDamageBonus
+        - points
+        - range
+        - reloadCooldown
+        - velocity
+      type: object
+      properties:
+        name:
+          type: string
+        points:
+          type: integer
+          format: int32
+        reloadCooldown:
+          type: number
+          format: double
+        velocity:
+          type: number
+          format: double
+        range:
+          type: number
+          format: double
+        directHitDamageBonus:
+          type: number
+          format: double
+        nearHitDamageBonus:
+          type: number
+          format: double
+        farHitDamageBonus:
+          type: number
+          format: double
+    Radar:
+      required:
+        - maxResolution
+        - name
+        - points
+        - range
+      type: object
+      properties:
+        name:
+          type: string
+        points:
+          type: integer
+          format: int32
+        range:
+          type: number
+          format: double
+        maxResolution:
+          type: number
+          format: double
+    StartGameRequest:
+      required:
+        - action
+        - apiHost
+        - boardHeight
+        - boardWidth
+        - collisionRange
+        - directHitRange
+        - farHitRange
+        - maxBuildPoints
+        - maxTurns
+        - minRobotStartDistance
+        - nearHitRange
+        - robotArns
+        - robotTimeoutSeconds
+        - robotType
+        - secondsPerTurn
+      type: object
+      properties:
+        action:
+          type: string
+        robotArns:
+          type: array
+          items:
+            type: string
+        boardWidth:
+          type: number
+          format: double
+        boardHeight:
+          type: number
+          format: double
+        secondsPerTurn:
+          type: number
+          format: double
+        maxTurns:
+          type: integer
+          format: int32
+        maxBuildPoints:
+          type: integer
+          format: int32
+        directHitRange:
+          type: number
+          format: double
+        nearHitRange:
+          type: number
+          format: double
+        farHitRange:
+          type: number
+          format: double
+        collisionRange:
+          type: number
+          format: double
+        minRobotStartDistance:
+          type: number
+          format: double
+        robotTimeoutSeconds:
+          type: number
+          format: double
+        robotType:
+          type: string
+        apiHost:
+          type: string
+    ScanEnemiesRequest:
+      required:
+        - gameId
+        - heading
+        - resolution
+        - robotId
+      type: object
+      properties:
+        gameId:
+          type: string
+        robotId:
+          type: string
+        heading:
+          type: number
+          format: double
+        resolution:
+          type: number
+          format: double
+    ScanEnemiesResponse:
+      required:
+        - distance
+        - found
+        - heading
+      type: object
+      properties:
+        found:
+          type: boolean
+        distance:
+          type: number
+          format: double
+        heading:
+          type: number
+          format: double

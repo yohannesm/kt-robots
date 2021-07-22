@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCach
 
 buildscript {
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0")
     }
 }
 
@@ -67,18 +67,13 @@ shadow {
 tasks.shadowJar{
     transform(Log4j2PluginsCacheFileTransformer::class.java)
 }
-task("initRobots", Exec::class) {
-    workingDir("./infrastructure")
+task("deploy-robots", Exec::class) {
+    workingDir("../")
     dependsOn("shadowJar")
-    commandLine("terraform", "init", "-no-color")
-}
-task("deployRobots", Exec::class) {
-    workingDir("./infrastructure")
-    dependsOn("initRobots")
-    commandLine("terraform", "apply", "-auto-approve", "-no-color")
+    commandLine("serverless", "deploy", "--aws-profile", "default")
 }
 
-task("destroyRobots", Exec::class) {
-    workingDir("./infrastructure")
-    commandLine("terraform", "destroy", "-auto-approve", "-no-color")
+task("delete-robots", Exec::class) {
+    workingDir("../")
+    commandLine("serverless", "remove", "--aws-profile", "default")
 }

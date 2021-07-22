@@ -38,10 +38,7 @@ class LambdaRobotStateTable {
      */
     fun getById(id: String): Optional<LambdaRobotStateRecord> {
         return Optional.ofNullable(
-            mapper.load(
-                LambdaRobotStateRecord::class.java,
-                id
-            )
+            mapper.loadObject<LambdaRobotStateRecord>(id)
         )
     }
 
@@ -52,3 +49,4 @@ class LambdaRobotStateTable {
         mapper.save(state)
     }
 }
+inline fun <reified T> DynamoDBMapper.loadObject(obj: Any): T? = load(T::class.java, obj)
